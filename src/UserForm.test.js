@@ -13,28 +13,47 @@ test("show inputs and button", () => {
 });
 
 test("its calls onUserAdd when the form is submitted", () => {
-  // bad implementation
-  const argList = [];
-  const callback = (...args) => {
-    argList.push(args);
-  };
+  const mock = jest.fn();
 
   // try render component
-
-  render(<UserForm onUserAdd={callback} />);
+  render(<UserForm onUserAdd={mock} />);
   // find the two inputs
-  const [nameInput, emailInput] = screen.getAllByRole("textbox");
+  const nameInput = screen.getByRole("textbox", {
+    name: /name/i,
+  });
+  const emailInput = screen.getByRole("textbox", {
+    name: /email/i,
+  });
+  const button = screen.getByRole("button");
   // simulate typing the name
   user.click(nameInput);
   user.keyboard("jane");
   // simulate typing the email
   user.click(emailInput);
-  user.keyboard("ane@hotmail.com");
+  user.keyboard("jane@jane.com");
   // find the button
-  const button = screen.getByRole("button");
+
   // simulate clicking the button
   user.click(button);
   // assertion to make sure 'onUserAdd' get called with email/name
-  expect(argList).toHaveLength(1);
-  expect(argList[0][0]).toEqual({ name: "jane", email: "ane@hotmail.com" });
+  expect(mock).toHaveBeenCalled();
+  expect(mock).toHaveBeenCalledWith({ name: "jane", email: "jane@jane.com" });
+});
+
+test("empties the two inputs when submitted", () => {
+  render(<UserForm onUserAdd={() => {}} />);
+
+  const nameInput = screen.getByRole("textbox", { name: /name/i });
+  const emailInput = screen.getByRole("textbox", { name: /email/i });
+  const button = screen.getByRole("button");
+
+  user.click(nameInput);
+  user.keyboard("jane");
+  user.click(emailInput);
+  user.keyboard("jane@jane.com");
+
+  user.click(button);
+
+  expect(nameInput).toHaveValue("");
+  expect(emailInput).toHaveValue("");
 });
